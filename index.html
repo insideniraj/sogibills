@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOGI - Solution of Glass and Industries | Billing & Ordering System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f9fafb;
+            color: #374151;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Header Styles */
+        .header {
+            background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid #e5e7eb;
+            padding: 1rem 0; /* Reduced padding */
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem; /* Reduced gap */
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem; /* Reduced gap */
+        }
+
+        .logo {
+            height: 5rem; /* Increased from 3rem to 5rem */
+            width: auto;
+        }
+
+        .company-info h1 {
+            font-size: 1.25rem; /* Smaller font size */
+            font-weight: bold;
+            color: #111827;
+        }
+
+        .company-info .subtitle {
+            font-size: 1rem; /* Smaller font size */
+            color: #4b5563;
+        }
+
+        .company-info .tagline {
+            font-size: 0.75rem; /* Smaller font size */
+            color: #2563eb;
+            font-weight: 500;
+        }
+
+        .contact-info {
+            text-align: right;
+            font-size: 0.75rem; /* Smaller font size */
+            color: #4b5563;
+        }
+
+        /* Tab Navigation */
+        .tabs {
+            margin: 2rem 0;
+        }
+
+        .tab-buttons {
+            display: flex;
+            background: white;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 1rem 2rem;
+            background: #f3f4f6;
+            border: none;
+            cursor: pointer;
+            font-size: 1.125rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .tab-button.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        .tab-button:hover:not(.active) {
+            background: #e5e7eb;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Card Styles */
+        .card {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+            margin: 0;
+        }
+
+        .invoice-title {
+            color: #dc2626;
+        }
+
+        .order-title {
+            color: #2563eb;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        /* Form Styles */
+        .form-grid {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-grid-2 {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+
+        .form-grid-3 {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+            color: #374151;
+        }
+
+        .form-input, .form-textarea {
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 4rem;
+        }
+
+        /* Table Styles */
+        .table-section {
+            margin: 1.5rem 0;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .table-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            background: #f3f4f6;
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 1px solid #d1d5db;
+        }
+
+        .data-table td {
+            padding: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .data-table input {
+            width: 100%;
+            padding: 0.25rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+        }
+
+        .data-table input:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+        .data-table input[readonly] {
+            background: #f9fafb;
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+
+        .btn-outline {
+            background: white;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+
+        .btn-outline:hover {
+            background: #f9fafb;
+        }
+
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        /* Summary Styles */
+        .summary-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .summary-box {
+            background: #f9fafb;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+        }
+
+        .summary-title {
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-total {
+            border-top: 1px solid #d1d5db;
+            padding-top: 0.5rem;
+            margin-top: 0.5rem;
+            font-weight: bold;
+            font-size: 1.125rem;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        /* Print Styles */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            
+            .header {
+                box-shadow: none;
+                border-bottom: 2px solid #000;
+            }
+            
+            .card {
+                box-shadow: none;
+                border: 1px solid #000;
+            }
+            
+            .form-input, .form-textarea {
+                border: none;
+                background: transparent;
+                padding: 0.25rem 0;
+            }
+            
+            .data-table input {
+                border: none;
+                background: transparent;
+                padding: 0.25rem;
+            }
+            
+            body {
+                background: white;
+            }
+
+            /* Ensure content fits on a single page */
+            #invoice-content, #order-content {
+                max-height: 270mm; /* A4 height approx, adjust as needed */
+                overflow: hidden;
+            }
+
+            .data-table td {
+                padding: 0.2rem 0.5rem; /* Reduce padding for table cells */
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .contact-info {
+                text-align: center;
+            }
+            
+            .summary-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <img src="SOGI_LOGO.png" alt="SOGI Logo" class="logo">
+                    <div class="company-info">
+                        <h1>SOGI</h1>
+                        <div class="subtitle">SOLUTION OF GLASS AND INDUSTRIES</div>
+                        <div class="tagline">Desh ko Gaurav Hamro Utapadan</div>
+                    </div>
+                </div>
+                <div class="contact-info">
+                    <div><strong>Address:</strong> Birgunj, Parsa 44300, Nepal</div>
+                    <div><strong>Phone No.:</strong> +977-9705663388</div>
+                    <div><strong>Email:</strong> soginepal@gmail.com</div>
+                    <div><strong>Website:</strong> www.soginepal.com</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Tabs -->
+        <div class="tabs no-print">
+            <div class="tab-buttons">
+                <button class="tab-button active" onclick="switchTab('invoice')">
+                    📄 Tax Invoice
+                </button>
+                <button class="tab-button" onclick="switchTab('order')">
+                    📋 Order List
+                </button>
+            </div>
+        </div>
+
+        <!-- Invoice Tab -->
+        <div id="invoice-tab" class="tab-content active">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title invoice-title">TAX INVOICE</h2>
+                </div>
+                <div class="card-content" id="invoice-content">
+                    <!-- Invoice Details -->
+                    <div class="form-grid form-grid-3">
+                        <div class="form-group">
+                            <label class="form-label">Invoice Number *</label>
+                            <input type="text" class="form-input" id="invoiceNumber" value="">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Date *</label>
+                            <input type="date" class="form-input" id="invoiceDate" value="">
+                        </div>
+                        <div></div>
+                    </div>
+
+                    <!-- Customer Details -->
+                    <div class="form-grid form-grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Customer Name *</label>
+                            <input type="text" class="form-input" id="customerName" placeholder="Enter customer name">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Company Name</label>
+                            <input type="text" class="form-input" id="companyName" placeholder="Enter company name">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Mobile Number *</label>
+                            <input type="text" class="form-input" id="mobile" placeholder="Enter mobile number">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-input" id="email" placeholder="Enter email address">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Address *</label>
+                        <textarea class="form-textarea" id="address" placeholder="Enter customer address"></textarea>
+                    </div>
+
+                    <!-- Products Table -->
+                    <div class="table-section">
+                        <div class="table-header">
+                            <h3 class="table-title">Products</h3>
+                            <button class="btn btn-primary btn-sm no-print" onclick="addInvoiceProduct()">
+                                ➕ Add Product
+                            </button>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Product Name</th>
+                                        <th>Rate (₹)</th>
+                                        <th>Quantity</th>
+                                        <th>Amount (₹)</th>
+                                        <th class="no-print">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="invoice-products">
+                                    <tr>
+                                        <td><input type="text" placeholder="Product name" onchange="calculateInvoice()"></td>
+                                        <td><input type="number" placeholder="0.00" onchange="calculateInvoice()"></td>
+                                        <td><input type="number" value="1" min="1" onchange="calculateInvoice()"></td>
+                                        <td><input type="text" readonly value="0.00"></td>
+                                        <td class="no-print">
+                                            <button class="btn btn-danger btn-sm" onclick="removeInvoiceProduct(this)" disabled>🗑️</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Invoice Summary -->
+                    <div class="summary-section">
+                        <div>
+                            <div class="form-grid form-grid-2">
+                                <div class="form-group">
+                                    <label class="form-label">Discount (%)</label>
+                                    <input type="number" class="form-input" id="discount" value="0" min="0" max="100" onchange="calculateInvoice()">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Tax/VAT (%)</label>
+                                    <input type="number" class="form-input" id="tax" value="13" min="0" onchange="calculateInvoice()">
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-top:1rem;">
+                                <label class="form-label">Remarks</label>
+                                <textarea class="form-textarea" id="invoiceRemarks" placeholder="Any remarks"></textarea>
+                            </div>
+                        </div>
+                        <div class="summary-box">
+                            <h4 class="summary-title">Invoice Summary</h4>
+                            <div class="summary-row">
+                                <span>Subtotal:</span>
+                                <span id="subtotal">₹0.00</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Discount (<span id="discount-percent">0</span>%):</span>
+                                <span id="discount-amount">-₹0.00</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Tax/VAT (<span id="tax-percent">13</span>%):</span>
+                                <span id="tax-amount">₹0.00</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Grand Total:</span>
+                                <span id="grand-total">₹0.00</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Paid Amount:</span>
+                                <input type="number" class="form-input" id="paid-amount" value="0" min="0" style="width:100px;" onchange="calculateInvoice()">
+                            </div>
+                            <div class="summary-row summary-total">
+                                <span>Final Total (Due):</span>
+                                <span id="final-total">₹0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons no-print">
+                    <button class="btn btn-primary" onclick="printInvoice()">
+                        🖨️ Print Invoice
+                    </button>
+                    <button class="btn btn-outline" onclick="exportInvoiceToPDF()">
+                        📄 Export PDF
+                    </button>
+                    <button class="btn btn-outline" onclick="exportInvoiceToExcel()">
+                        📊 Export Excel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Tab -->
+        <div id="order-tab" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title order-title">SOGI ORDER LIST</h2>
+                </div>
+                <div class="card-content" id="order-content">
+                    <!-- Order Details -->
+                    <div class="form-grid form-grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Supplier Name *</label>
+                            <input type="text" class="form-input" id="supplierName" placeholder="Enter supplier name">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Date *</label>
+                            <input type="date" class="form-input" id="orderDate" value="">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Contact Number / Email</label>
+                            <input type="text" class="form-input" id="contact" placeholder="Phone or email">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Delivery Address</label>
+                        <textarea class="form-textarea" id="deliveryAddress" placeholder="Enter delivery address"></textarea>
+                    </div>
+
+                    <!-- Products Table -->
+                    <div class="table-section">
+                        <div class="table-header">
+                            <h3 class="table-title">Products to Order</h3>
+                            <button class="btn btn-primary btn-sm no-print" onclick="addOrderProduct()">
+                                ➕ Add Product
+                            </button>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Product Name</th>
+                                        <th>Quantity</th>
+                                        <th>Remarks</th>
+                                        <th class="no-print">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="order-products">
+                                    <tr>
+                                        <td><input type="text" placeholder="Product name" onchange="calculateOrder()"></td>
+                                        <td><input type="number" value="1" min="1" onchange="calculateOrder()"></td>
+                                        <td><input type="text" placeholder="Any remarks"></td>
+                                        <td class="no-print">
+                                            <button class="btn btn-danger btn-sm" onclick="removeOrderProduct(this)" disabled>🗑️</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Order Summary -->
+                    <div class="summary-box">
+                        <h4 class="summary-title">Order Summary</h4>
+                        <div class="summary-row">
+                            <span>Total Quantity:</span>
+                            <span id="total-quantity">1</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-textarea" id="notes" placeholder="Additional notes or instructions"></textarea>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons no-print">
+                    <button class="btn btn-primary" onclick="printOrder()">
+                        🖨️ Print Order List
+                    </button>
+                    <button class="btn btn-outline" onclick="exportOrderToPDF()">
+                        📄 Export PDF
+                    </button>
+                    <button class="btn btn-outline" onclick="exportOrderToExcel()">
+                        📊 Export Excel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('invoiceDate').value = today;
+            document.getElementById('orderDate').value = today;
+            document.getElementById('invoiceNumber').value = 'INV-' + Date.now();
+            calculateInvoice();
+            calculateOrder();
+        });
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Invoice functions
+        function addInvoiceProduct() {
+            const tbody = document.getElementById('invoice-products');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="text" placeholder="Product name" onchange="calculateInvoice()"></td>
+                <td><input type="number" placeholder="0.00" onchange="calculateInvoice()"></td>
+                <td><input type="number" value="1" min="1" onchange="calculateInvoice()"></td>
+                <td><input type="text" readonly value="0.00"></td>
+                <td class="no-print">
+                    <button class="btn btn-danger btn-sm" onclick="removeInvoiceProduct(this)">🗑️</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+            updateRemoveButtons('invoice');
+        }
+
+        function removeInvoiceProduct(button) {
+            const tbody = document.getElementById('invoice-products');
+            if (tbody.children.length > 1) {
+                button.closest('tr').remove();
+                updateRemoveButtons('invoice');
+                calculateInvoice();
+            }
+        }
+
+        function calculateInvoice() {
+            const rows = document.querySelectorAll('#invoice-products tr');
+            let subtotal = 0;
+
+            rows.forEach(row => {
+                const rate = parseFloat(row.children[1].querySelector('input').value) || 0;
+                const quantity = parseInt(row.children[2].querySelector('input').value) || 1;
+                const amount = rate * quantity;
+                row.children[3].querySelector('input').value = amount.toFixed(2);
+                subtotal += amount;
+            });
+
+            const discount = parseFloat(document.getElementById('discount').value) || 0;
+            const tax = parseFloat(document.getElementById('tax').value) || 0;
+            const paidAmount = parseFloat(document.getElementById('paid-amount').value) || 0;
+
+            const discountAmount = (subtotal * discount) / 100;
+            const taxableAmount = subtotal - discountAmount;
+            const taxAmount = (taxableAmount * tax) / 100;
+            const grandTotal = taxableAmount + taxAmount;
+            const due = Math.max(grandTotal - paidAmount, 0);
+
+            document.getElementById('subtotal').textContent = '₹' + subtotal.toFixed(2);
+            document.getElementById('discount-percent').textContent = discount;
+            document.getElementById('discount-amount').textContent = '-₹' + discountAmount.toFixed(2);
+            document.getElementById('tax-percent').textContent = tax;
+            document.getElementById('tax-amount').textContent = '₹' + taxAmount.toFixed(2);
+            document.getElementById('grand-total').textContent = '₹' + grandTotal.toFixed(2);
+            document.getElementById('final-total').textContent = '₹' + due.toFixed(2);
+        }
+
+        // Order functions
+        function addOrderProduct() {
+            const tbody = document.getElementById('order-products');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="text" placeholder="Product name" onchange="calculateOrder()"></td>
+                <td><input type="number" value="1" min="1" onchange="calculateOrder()"></td>
+                <td><input type="text" placeholder="Any remarks"></td>
+                <td class="no-print">
+                    <button class="btn btn-danger btn-sm" onclick="removeOrderProduct(this)">🗑️</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+            updateRemoveButtons('order');
+        }
+
+        function removeOrderProduct(button) {
+            const tbody = document.getElementById('order-products');
+            if (tbody.children.length > 1) {
+                button.closest('tr').remove();
+                updateRemoveButtons('order');
+                calculateOrder();
+            }
+        }
+
+        function calculateOrder() {
+            const rows = document.querySelectorAll('#order-products tr');
+            let totalQuantity = 0;
+
+            rows.forEach(row => {
+                const quantity = parseInt(row.children[1].querySelector('input').value) || 1;
+                totalQuantity += quantity;
+            });
+
+            document.getElementById('total-quantity').textContent = totalQuantity;
+        }
+
+        function updateRemoveButtons(type) {
+            const tbody = document.getElementById(type + '-products');
+            const buttons = tbody.querySelectorAll('.btn-danger');
+            buttons.forEach(btn => {
+                btn.disabled = tbody.children.length <= 1;
+            });
+        }
+
+        // Print functions
+        function printInvoice() {
+            window.print();
+        }
+
+        function printOrder() {
+            window.print();
+        }
+
+        // PDF Export functions
+        function exportInvoiceToPDF() {
+            const { jsPDF } = window.jspdf;
+            const element = document.getElementById('invoice-content');
+            
+            html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const imgWidth = 210;
+                const pageHeight = 295;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                let heightLeft = imgHeight;
+                let position = 0;
+
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+
+                const invoiceNumber = document.getElementById('invoiceNumber').value || 'Invoice';
+                pdf.save(invoiceNumber + '.pdf');
+            }).catch(error => {
+                console.error('Error generating PDF:', error);
+                alert('Error generating PDF. Please try again.');
+            });
+        }
+
+        function exportOrderToPDF() {
+            const { jsPDF } = window.jspdf;
+            const element = document.getElementById('order-content');
+            
+            html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const imgWidth = 210;
+                const pageHeight = 295;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                let heightLeft = imgHeight;
+                let position = 0;
+
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+
+                const orderDate = document.getElementById('orderDate').value || 'Order';
+                pdf.save('SOGI-Order-' + orderDate + '.pdf');
+            }).catch(error => {
+                console.error('Error generating PDF:', error);
+                alert('Error generating PDF. Please try again.');
+            });
+        }
+
+        // Excel Export functions
+        function exportInvoiceToExcel() {
+            const invoiceData = [
+                ['SOGI - SOLUTION OF GLASS AND INDUSTRIES'],
+                ['TAX INVOICE'],
+                [''],
+                ['Invoice Number:', document.getElementById('invoiceNumber').value],
+                ['Date:', document.getElementById('invoiceDate').value],
+                ['Customer Name:', document.getElementById('customerName').value],
+                ['Company Name:', document.getElementById('companyName').value],
+                ['Mobile:', document.getElementById('mobile').value],
+                ['Email:', document.getElementById('email').value],
+                ['Address:', document.getElementById('address').value],
+                ['Remarks:', document.getElementById('invoiceRemarks').value],
+                [''],
+                ['Product Name', 'Rate (₹)', 'Quantity', 'Amount (₹)']
+            ];
+
+            // Add products
+            const rows = document.querySelectorAll('#invoice-products tr');
+            rows.forEach(row => {
+                const name = row.children[0].querySelector('input').value;
+                const rate = row.children[1].querySelector('input').value;
+                const quantity = row.children[2].querySelector('input').value;
+                const amount = row.children[3].querySelector('input').value;
+                invoiceData.push([name, rate, quantity, amount]);
+            });
+
+            // Add summary
+            const subtotal = document.getElementById('subtotal').textContent.replace('₹', '');
+            const discount = document.getElementById('discount-amount').textContent.replace('-₹', '');
+            const tax = document.getElementById('tax-amount').textContent.replace('₹', '');
+            const grandTotal = document.getElementById('grand-total').textContent.replace('₹', '');
+            const paidAmount = document.getElementById('paid-amount').value;
+            const due = document.getElementById('final-total').textContent.replace('₹', '');
+
+            invoiceData.push(['']);
+            invoiceData.push(['', '', 'Subtotal:', subtotal]);
+            invoiceData.push(['', '', 'Discount:', '-' + discount]);
+            invoiceData.push(['', '', 'Tax/VAT:', tax]);
+            invoiceData.push(['', '', 'Grand Total:', grandTotal]);
+            invoiceData.push(['', '', 'Paid Amount:', paidAmount]);
+            invoiceData.push(['', '', 'Final Total (Due):', due]);
+
+            const ws = XLSX.utils.aoa_to_sheet(invoiceData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Invoice');
+            
+            const invoiceNumber = document.getElementById('invoiceNumber').value || 'Invoice';
+            XLSX.writeFile(wb, invoiceNumber + '.xlsx');
+        }
+
+        function exportOrderToExcel() {
+            const orderData = [
+                ['SOGI - SOLUTION OF GLASS AND INDUSTRIES'],
+                ['ORDER LIST'],
+                [''],
+                ['Supplier Name:', document.getElementById('supplierName').value],
+                ['Date:', document.getElementById('orderDate').value],
+                ['Contact:', document.getElementById('contact').value],
+                ['Delivery Address:', document.getElementById('deliveryAddress').value],
+                [''],
+                ['Product Name', 'Quantity', 'Remarks']
+            ];
+
+            // Add products
+            const rows = document.querySelectorAll('#order-products tr');
+            rows.forEach(row => {
+                const name = row.children[0].querySelector('input').value;
+                const quantity = row.children[1].querySelector('input').value;
+                const remarks = row.children[2].querySelector('input').value;
+                orderData.push([name, quantity, remarks]);
+            });
+
+            // Add summary
+            const totalQuantity = document.getElementById('total-quantity').textContent;
+            const notes = document.getElementById('notes').value;
+
+            orderData.push(['']);
+            orderData.push(['Total Quantity:', totalQuantity]);
+            orderData.push(['']);
+            orderData.push(['Notes:', notes]);
+
+            const ws = XLSX.utils.aoa_to_sheet(orderData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Order List');
+            
+            const orderDate = document.getElementById('orderDate').value || 'Order';
+            XLSX.writeFile(wb, 'SOGI-Order-' + orderDate + '.xlsx');
+        }
+    </script>
+</body>
+</html>
+
