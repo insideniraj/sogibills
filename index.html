@@ -451,7 +451,8 @@
         <div class="tabs no-print">
             <div class="tab-buttons">
                 <button class="tab-button active" onclick="switchTab('invoice')">
-                    📄 Tax Invoice
+                    📄 Proforma Invoice 
+
                 </button>
                 <button class="tab-button" onclick="switchTab('order')">
                     📋 Order List
@@ -463,7 +464,7 @@
         <div id="invoice-tab" class="tab-content active">
             <div class="card">
                 <div class="card-header">
-                    <h2 class="card-title invoice-title">TAX INVOICE</h2>
+                    <h2 class="card-title invoice-title">Proforma Invoice</h2>
                 </div>
                 <div class="card-content" id="invoice-content">
                     <!-- Invoice Details -->
@@ -904,7 +905,7 @@
         function exportInvoiceToExcel() {
             const invoiceData = [
                 ['SOGI - SOLUTION OF GLASS AND INDUSTRIES'],
-                ['TAX INVOICE'],
+                ['Proforma Invoice'],
                 [''],
                 ['Invoice Number:', document.getElementById('invoiceNumber').value],
                 ['Date:', document.getElementById('invoiceDate').value],
